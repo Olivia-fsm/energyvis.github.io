@@ -52,6 +52,7 @@ main {
     display: flex;
     flex-grow: 1; /* Allow wrapper to fill tab content */
     gap: 15px; /* Space between map and side panel */
+    position: relative; /* Allow absolute positioning of side panels */
 }
 
 .main-panel {
@@ -77,15 +78,30 @@ main {
 .side-panel {
     border: 1px solid #ccc;
     padding: 15px;
-    width: 300px; /* Fixed width for side panel */
+    width: 350px; /* Fixed width for side panel */
     background-color: #f9f9f9;
     overflow-y: auto; /* Add scroll if content overflows */
     box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-    position: relative; /* For close button positioning */
+    position: absolute; /* Position absolutely within content-wrapper */
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    max-height: 100%;
 }
 
 .side-panel h3 {
     margin-top: 0;
+}
+
+.side-panel h4 {
+    margin: 10px 0 5px 0;
+    color: #333;
+}
+
+.side-panel p {
+    margin: 5px 0;
+    font-size: 0.9em;
 }
 
 .stats-panel {
@@ -117,6 +133,11 @@ main {
     cursor: pointer;
     padding: 2px 5px;
     font-weight: bold;
+    font-size: 12px;
+}
+
+.close-button:hover {
+    background: #ddd;
 }
 
 /* Simple Legend Styling */
@@ -138,8 +159,44 @@ main {
     vertical-align: middle;
 }
 
-/* Chart container styling */
-#dist-charts > div, #country-growth-chart, #global-growth-chart, #global-summary-chart {
+/* Chart containers */
+#dist-charts > div, 
+#summary-charts > div,
+#country-growth-chart, 
+#global-growth-chart, 
+#global-summary-chart {
     margin-top: 15px;
-    min-height: 150px; /* Ensure space for charts */
+    min-height: 150px;
+}
+
+/* Specific styling for summary tab charts */
+#summary-charts > div {
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .side-panel {
+        width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+    
+    .side-panel {
+        position: relative;
+        width: 100%;
+        max-height: 400px;
+    }
+    
+    .stats-panel2 {
+        flex: none;
+    }
 }
