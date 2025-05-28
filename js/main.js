@@ -21,15 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabContents = document.querySelectorAll('.tab-content');
     const growthFuelSelect = document.getElementById('growth-fuel-select');
 
-    // const summaryStatsPanel = document.getElementById('summary-stats-panel');
-    // const globalSummaryContentDiv = document.getElementById('global-summary-content');
-    // const countrySummaryContentDiv = document.getElementById('country-summary-content');
-    // const globalTotalCapacitySpan = document.getElementById('global-total-capacity');
-    // const summaryLatestYearGlobalSpan = document.getElementById('summary-latest-year-global');
-    // const countrySummaryTitle = document.getElementById('country-summary-title');
-    // const globalSummaryPieChartDiv = document.getElementById('global-summary-pie-chart');
-
-
     // 1.3. Map Options
     const mapOptions = {
         center: [20, 0],
@@ -387,6 +378,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add click handler for country selection
                 layer.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
+                    L.DomEvent.preventDefault(e);
+                    // Remove focus from any element to prevent outline
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
                     selectCountryInSummary(countryName, layer);
                 });
             }
