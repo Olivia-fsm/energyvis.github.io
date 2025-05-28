@@ -307,7 +307,15 @@ document.addEventListener('DOMContentLoaded', () => {
             title: `${countryName} - Green Energy (${countryData.green_perc}%)`,
             showlegend: true,
             margin: { l: 10, r: 10, t: 40, b: 10 },
-            height: 250
+            height: 250,
+            legend: {
+                orientation: 'h',   // Horizontal layout
+                x: 0.5,              // Center horizontally
+                y: -0.1,             // Below the plot
+                xanchor: 'center',
+                yanchor: 'top',
+                font: { size: 15 }
+            }
         };
 
         Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
@@ -341,7 +349,15 @@ document.addEventListener('DOMContentLoaded', () => {
             title: `${countryName} - Renewable Energy (${countryData.renewable_perc}%)`,
             showlegend: true,
             margin: { l: 10, r: 10, t: 40, b: 10 },
-            height: 250
+            height: 250,
+            legend: {
+                orientation: 'h',   // Horizontal layout
+                x: 0.5,              // Center horizontally
+                y: -0.1,             // Below the plot
+                xanchor: 'center',
+                yanchor: 'top',
+                font: { size: 15 }
+            }
         };
 
         Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
