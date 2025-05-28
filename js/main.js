@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1.1. Global State
     let processedData = null;
     let worldGeoJson = null;
+
+    let highlightedCountryLayer = null; //(updated)
+
     let maps = {
         summary: null,
         distribution: null,
@@ -14,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         distribution: null,
         growth: null
     };
-    let highlightedCountry = null; // Track currently highlighted country for summary tab
 
     // 1.2. Document Object Model Elements
     const tabs = document.querySelectorAll('.tab-button');
@@ -106,226 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // // 3. For the tab 'Summary'
-    // // 3.1. Initialize the summary page
-    // function initSummaryTab() {
-    //     console.log("Initializing Summary Tab");
-    //     const latestYear = processedData.years[processedData.years.length - 1];
-    //     const globalData = processedData.global_summary[latestYear];
-
-    //     const statsContainer = document.getElementById('global-summary-stats');
-    //      if (!statsContainer) return; // Exit if container not found
-    //     statsContainer.innerHTML = `
-    //         <h4>Global Stats (${latestYear})</h4>
-    //         <p>Total Capacity: ${globalData?.total_capacity?.toLocaleString() || 0} MW</p>
-    //         <div id="global-summary-chart"></div>
-    //     `;
-
-    //     // Summary Visualization
-    //     const fuelData = Object.entries(globalData || {})
-    //         .filter(([key]) => key !== 'total_capacity')
-    //         .map(([fuel, capacity]) => ({ fuel, capacity }));
-
-    //     const plotData = [{
-    //         labels: fuelData.map(d => d.fuel), values: fuelData.map(d => d.capacity),
-    //         type: 'pie', marker: { colors: fuelData.map(d => fuelColors[d.fuel] || fuelColors['Unknown']) },
-    //         hole: .4, textinfo: 'percent', hoverinfo: 'label+value'
-    //     }];
-
-    //     const layout = {
-    //         title: `Global Fuel Mix by Capacity (${latestYear})`, showlegend: true,
-    //         margin: { l: 20, r: 20, t: 40, b: 20 }, height: 300
-    //     };
-
-    //     Plotly.newPlot('global-summary-chart', plotData, layout, {responsive: true});
-
-    //     // Map Visualization: Color countries by Total Capacity
-    //     if (geoJsonLayers.summary) maps.summary.removeLayer(geoJsonLayers.summary);
-
-    //     geoJsonLayers.summary = L.geoJSON(worldGeoJson, {
-    //         style: feature => {
-    //             const countryName = getCountryNameFromFeature(feature);
-    //             const countryData = processedData.country_summary[countryName]?.[latestYear];
-    //             const capacity = countryData?.total_capacity || 0;
-
-    //             let fillColor = '#d3d3d3';
-    //             if (capacity > 1000) fillColor = '#bd0026';
-    //             else if (capacity > 500) fillColor = '#f03b20';
-    //             else if (capacity > 100) fillColor = '#fd8d3c';
-    //             else if (capacity > 0) fillColor = '#fecc5c';
-    //             return { fillColor: fillColor, weight: 1, opacity: 1, color: 'white', fillOpacity: 0.7 };
-    //         },
-    //         onEachFeature: (feature, layer) => {
-    //             const countryName = getCountryNameFromFeature(feature);
-    //             const countryData = processedData.country_summary[countryName]?.[latestYear];
-    //             const capacity = countryData?.total_capacity || 0;
-    //             layer.bindTooltip(`<b>${countryName}</b><br>Total Capacity: ${capacity.toLocaleString()} MW`);
-    //         }
-    //     }).addTo(maps.summary);
-    //      maps.summary.invalidateSize();
-    // }
-    // // 3. For the tab 'Summary'
-    // // 3.1. Initialize the summary page (displays global summary by default)
-    // function initSummaryTab() {
-    //     console.log("Initializing Summary Tab with Global Data");
-    //     if (!processedData || !maps.summary || !worldGeoJson) {
-    //         console.error("Summary Tab: Data, map, or GeoJSON not ready. Aborting tab initialization.");
-    //         if (globalSummaryPieChartDiv) globalSummaryPieChartDiv.innerHTML = "<p>Error: Map or data not loaded for Summary tab.</p>";
-    //         return;
-    //     }
-
-    //     const latestYear = processedData.years[processedData.years.length - 1];
-    //     const globalData = processedData.global_summary[latestYear];
-
-    //     if (!globalData) {
-    //         console.error(`Global data for latest year (${latestYear}) not found.`);
-    //         if (globalSummaryPieChartDiv) globalSummaryPieChartDiv.innerHTML = `<p>Error: Global data for ${latestYear} not found.</p>`;
-    //         return;
-    //     }
-        
-    //     if (globalSummaryContentDiv) globalSummaryContentDiv.classList.remove('hidden');
-    //     if (countrySummaryContentDiv) countrySummaryContentDiv.classList.add('hidden');
-
-    //     if (summaryLatestYearGlobalSpan) summaryLatestYearGlobalSpan.textContent = latestYear;
-    //     if (globalTotalCapacitySpan) globalTotalCapacitySpan.textContent = globalData.total_capacity?.toLocaleString() || 'N/A';
-        
-    //     const fuelData = Object.entries(globalData)
-    //         .filter(([key]) => key !== 'total_capacity' && processedData.fuel_types.includes(key) && globalData[key] > 0)
-    //         .map(([fuel, capacity]) => ({ fuel, capacity }))
-    //         .sort((a, b) => b.capacity - a.capacity);
-
-    //     if (globalSummaryPieChartDiv) {
-    //         if (fuelData.length > 0) {
-    //             const plotData = [{
-    //                 labels: fuelData.map(d => d.fuel),
-    //                 values: fuelData.map(d => d.capacity),
-    //                 type: 'pie',
-    //                 marker: { colors: fuelData.map(d => fuelColors[d.fuel] || fuelColors['Unknown']) },
-    //                 hole: .4, textinfo: 'percent', hoverinfo: 'label+value', sort: false
-    //             }];
-    //             const layout = {
-    //                 title: `Global Fuel Mix by Capacity (${latestYear})`,
-    //                 showlegend: true, legend: {traceorder: 'normal'},
-    //                 margin: { l: 20, r: 20, t: 50, b: 20 }, height: 300
-    //             };
-    //             Plotly.newPlot(globalSummaryPieChartDiv, plotData, layout, {responsive: true});
-    //         } else {
-    //             globalSummaryPieChartDiv.innerHTML = "<p>No global fuel data to display.</p>";
-    //         }
-    //     } else {
-    //         console.warn("global-summary-pie-chart div not found.");
-    //     }
-
-
-    //     if (selectedSummaryLayer) {
-    //         try {
-    //             if (maps.summary && maps.summary.hasLayer(geoJsonLayers.summary)) {
-    //                  geoJsonLayers.summary.resetStyle(selectedSummaryLayer);
-    //             }
-    //         } catch(e) {
-    //             console.warn("Could not reset style for selectedSummaryLayer on tab init", e);
-    //         }
-    //         selectedSummaryLayer = null;
-    //     }
-    //     if (geoJsonLayers.summary && maps.summary.hasLayer(geoJsonLayers.summary)) {
-    //          maps.summary.removeLayer(geoJsonLayers.summary);
-    //     }
-
-    //     geoJsonLayers.summary = L.geoJSON(worldGeoJson, {
-    //         style: feature => {
-    //             const countryName = getCountryNameFromFeature(feature);
-    //             const countryLatestData = processedData.country_summary[countryName]?.[latestYear];
-    //             const capacity = countryLatestData?.total_capacity || 0;
-    //             let fillColor = '#e0e0e0';
-    //             if (capacity > 500000) fillColor = '#800026';
-    //             else if (capacity > 100000) fillColor = '#BD0026';
-    //             else if (capacity > 50000) fillColor = '#E31A1C';
-    //             else if (capacity > 10000) fillColor = '#FC4E2A';
-    //             else if (capacity > 1000) fillColor = '#FD8D3C';
-    //             else if (capacity > 100) fillColor = '#FEB24C';
-    //             else if (capacity > 0) fillColor = '#FED976';
-    //             return { fillColor: fillColor, weight: 1, opacity: 1, color: 'white', fillOpacity: 0.7 };
-    //         },
-    //         onEachFeature: (feature, layer) => {
-    //             const countryName = getCountryNameFromFeature(feature);
-    //             const countryLatestData = processedData.country_summary[countryName]?.[latestYear];
-    //             const capacity = countryLatestData?.total_capacity || 0;
-    //             layer.bindTooltip(`<b>${countryName}</b><br>Total Capacity (${latestYear}): ${capacity.toLocaleString()} MW`);
-
-    //             layer.on('click', (e) => {
-    //                 L.DomEvent.stopPropagation(e);
-    //                 if (selectedSummaryLayer && geoJsonLayers.summary.hasLayer(selectedSummaryLayer)) {
-    //                     geoJsonLayers.summary.resetStyle(selectedSummaryLayer);
-    //                 }
-    //                 layer.setStyle({ weight: 2.5, color: '#00FFFF', dashArray: '', fillOpacity: 0.9 });
-    //                 if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-    //                     layer.bringToFront();
-    //                 }
-    //                 selectedSummaryLayer = layer;
-    //                 displayCountrySummary(countryName, countryLatestData, latestYear);
-    //             });
-    //         }
-    //     }).addTo(maps.summary);
-    //     if (maps.summary && typeof maps.summary.invalidateSize === 'function') {
-    //         maps.summary.invalidateSize();
-    //     }
-    // }
-
-    // // 3.2. Display country-specific summary in the side panel
-    // function displayCountrySummary(countryName, countryData, year) {
-    //     console.log(`Displaying summary for ${countryName}, Year: ${year}`);
-
-    //     if (globalSummaryContentDiv) globalSummaryContentDiv.classList.add('hidden');
-    //     if (countrySummaryContentDiv) countrySummaryContentDiv.classList.remove('hidden');
-
-    //     const fuelMixChartDiv = document.getElementById('country-fuel-mix-pie-chart');
-    //     const greenChartDiv = document.getElementById('country-green-energy-pie-chart');
-    //     const renewableChartDiv = document.getElementById('country-renewable-energy-pie-chart');
-
-    //     if (!fuelMixChartDiv || !greenChartDiv || !renewableChartDiv || !countrySummaryTitle) {
-    //         console.warn("One or more country summary chart divs not found.");
-    //         return;
-    //     }
-        
-    //     if (!countryData) {
-    //         countrySummaryTitle.textContent = `${countryName} Summary (${year})`;
-    //         fuelMixChartDiv.innerHTML = '<p>No data available for this country.</p>';
-    //         greenChartDiv.innerHTML = '';
-    //         renewableChartDiv.innerHTML = '';
-    //         return;
-    //     }
-
-    //     countrySummaryTitle.textContent = `${countryName} Summary (${year}) - Total: ${countryData.total_capacity?.toLocaleString() || 'N/A'} MW`;
-
-    //     const fuelMixData = Object.entries(countryData.fuels || {})
-    //         .map(([fuel, capacity]) => ({ fuel, capacity }))
-    //         .filter(d => d.capacity > 0)
-    //         .sort((a, b) => b.capacity - a.capacity);
-
-    //     if (fuelMixData.length > 0) {
-    //         Plotly.newPlot(fuelMixChartDiv, [{
-    //             labels: fuelMixData.map(d => d.fuel), values: fuelMixData.map(d => d.capacity), type: 'pie',
-    //             marker: { colors: fuelMixData.map(d => fuelColors[d.fuel] || fuelColors['Unknown']) },
-    //             hole: .4, textinfo: 'percent+label', hoverinfo: 'value', sort: false
-    //         }], { title: `Fuel Mix by Capacity`, showlegend: false, margin: { t: 30, b: 10, l: 10, r: 10 }, height: 250 }, {responsive: true});
-    //     } else {
-    //         fuelMixChartDiv.innerHTML = '<p>No fuel mix data.</p>';
-    //     }
-
-    //     const greenPerc = countryData.green_perc ?? 0;
-    //     Plotly.newPlot(greenChartDiv, [{
-    //         labels: ['Green Energy', 'Other'], values: [greenPerc, 100 - greenPerc], type: 'pie',
-    //         marker: { colors: ['#4CAF50', '#E0E0E0'] }, hole: .4, textinfo: 'percent', hoverinfo: 'label+value', sort: false
-    //     }], { title: `Green Energy %`, annotations: [{ font: { size: 16 }, showarrow: false, text: `${greenPerc.toFixed(1)}%`, x: 0.5, y: 0.5 }],
-    //          showlegend: true, margin: { t: 40, b: 10, l: 10, r: 10 }, height: 230 }, {responsive: true});
-
-    //     const renewablePerc = countryData.renewable_perc ?? 0;
-    //     Plotly.newPlot(renewableChartDiv, [{
-    //         labels: ['Renewable Energy', 'Other'], values: [renewablePerc, 100 - renewablePerc], type: 'pie',
-    //         marker: { colors: ['#2196F3', '#E0E0E0'] }, hole: .4, textinfo: 'percent', hoverinfo: 'label+value', sort: false
-    //     }], { title: `Renewable Energy %`, annotations: [{ font: { size: 16 }, showarrow: false, text: `${renewablePerc.toFixed(1)}%`, x: 0.5, y: 0.5 }],
-    //          showlegend: true, margin: { t: 40, b: 10, l: 10, r: 10 }, height: 230 }, {responsive: true});
-    // }
     // 3. For the tab 'Summary'
     // 3.1. Initialize the summary page
     function initSummaryTab() {
@@ -389,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).addTo(maps.summary);
          maps.summary.invalidateSize();
     }
-
+    
     // 3.2. Get country style for summary map
     function getSummaryCountryStyle(feature, isHighlighted) {
         const latestYear = processedData.years[processedData.years.length - 1];
@@ -567,58 +349,223 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. For the tab 'Plant distribution'
     // 4.1. Initialize the plant distribution
-    function initDistributionTab() {
+    // Global array to store references to circle markers
+    let plantMarkers = [];
 
+    function initDistributionTab() {
         console.log("Initializing Distribution Tab");
 
+        // Clear existing non-tile layers
         maps.distribution.eachLayer(layer => {
             if (!(layer instanceof L.TileLayer)) {
                 maps.distribution.removeLayer(layer);
             }
         });
         geoJsonLayers.distribution = null;
+        plantMarkers = []; // Reset marker storage
 
+        const zoomLevel = maps.distribution.getZoom();
+
+        // Add plant markers
         processedData.plants_latest.forEach(plant => {
             if (plant.lat != null && plant.lon != null) {
-                L.circleMarker([plant.lat, plant.lon], {
-                    radius: getPlantMarkerRadius(plant.cap),
+                const marker = L.circleMarker([plant.lat, plant.lon], {
+                    radius: getPlantMarkerRadius_0(plant.cap, zoomLevel),
                     fillColor: fuelColors[plant.fuel] || fuelColors['Unknown'],
-                    color: "#000", weight: 0.5, opacity: 1, fillOpacity: 0.8
+                    color: "#000",
+                    weight: 0.5,
+                    opacity: 1,
+                    fillOpacity: 0.8
                 }).addTo(maps.distribution)
                 .bindTooltip(`<b>${plant.country || 'N/A'}</b><br>Fuel: ${plant.fuel || 'N/A'}<br>Capacity: ${plant.cap?.toLocaleString() || 'N/A'} MW`);
+
+                marker._plantCap = plant.cap; // Store capacity for resizing later
+                plantMarkers.push(marker);
             }
         });
 
+        // Add GeoJSON country layer for click interaction
         geoJsonLayers.distribution = L.geoJSON(worldGeoJson, {
-            style: { fillColor: 'transparent', weight: 0.5, opacity: 0.2, color: '#555' },
+            style: { fillColor: 'transparent', weight: 0.5, opacity: 0.5, color: '#555' },
             onEachFeature: (feature, layer) => {
                 layer.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     const countryName = getCountryNameFromFeature(feature);
                     console.log("Clicked on country:", countryName);
+
+                    // Remove previous highlight
+                    if (highlightedCountryLayer) {
+                        geoJsonLayers.distribution.resetStyle(highlightedCountryLayer);
+                    }
+
+                    // Highlight current layer
+                    layer.setStyle({
+                        weight: 15,
+                        color: '#40E0D0',
+                        fillOpacity: 1.0
+                    });
+
+                    highlightedCountryLayer = layer;
                     displayCountryDistributionInfo(countryName);
                 });
             }
         }).addTo(maps.distribution);
-         maps.distribution.invalidateSize();
+
+        // Attach zoom handler to resize markers
+        maps.distribution.on('zoomend', () => {
+            const currentZoom = maps.distribution.getZoom();
+            plantMarkers.forEach(marker => {
+                const newRadius = getPlantMarkerRadius_0(marker._plantCap, currentZoom);
+                marker.setRadius(newRadius);
+            });
+        });
+
+        maps.distribution.invalidateSize();
     }
 
-    // 4.2. Disply the plant distrubution and country distribution
+    // Updated to be zoom-aware
+    function getPlantMarkerRadius_0(capacity, zoomLevel = 2) {
+        const baseSize = Math.sqrt(capacity / 10);
+        const scale = zoomLevel / 3; // Adjust this scale factor as needed
+        return Math.max(3, baseSize * scale * 0.5);
+    }
+
+    // 4.2. Disply the plant distrubution and country distribution (updated)
     function displayCountryDistributionInfo(countryName) {
+        console.log("--- Entering displayCountryDistributionInfo ---");
+        console.log("Function called with countryName:", countryName); // DEBUG LOG 1
 
         const latestYear = processedData.years[processedData.years.length - 1];
+        console.log("Latest year from processedData:", latestYear); // DEBUG LOG 2
+
         const countryData = processedData.country_summary[countryName]?.[latestYear];
-    
+        console.log("Result of processedData.country_summary[countryName]?.[latestYear] for", countryName, ":", countryData); // DEBUG LOG 3
+
         const panel = document.getElementById('country-info-distribution');
         const nameDiv = document.getElementById('dist-country-name');
         const chartsDiv = document.getElementById('dist-charts');
-    
-        console.log("Showing distribution panel for:", countryName);
-        showPanel('country-info-distribution'); 
 
-        chartsDiv.innerHTML = '<p style="color: black;">Coming soon...</p>';
+        // Ensure the panel is visible
+        showPanel('country-info-distribution');
+
+        // Always update the country name in the panel
+        nameDiv.textContent = countryName;
+
+        // CRITICAL: Clear the chartsDiv content entirely first, before deciding what to put there
+        chartsDiv.innerHTML = ''; // This ensures any previous content (like "No data" message) is removed
+
+        if (!countryData) {
+            console.warn("Condition: No data available for", countryName, "in", latestYear); // DEBUG LOG 4
+            chartsDiv.innerHTML = `<p>No data available for ${countryName} in ${latestYear}.</p>`;
+            console.log("--- Exiting displayCountryDistributionInfo (no data) ---");
+            return;
+        }
+
+        // If we reach here, it means countryData IS available, so we prepare to draw charts
+        chartsDiv.innerHTML = `
+            <div id="dist-fuel-mix-chart"></div>
+            <div id="dist-green-pie-chart"></div>
+            <div id="dist-renewable-pie-chart"></div>
+        `;
+        console.log("Chart divs re-created for:", countryName); // DEBUG LOG 5
+
+        // --- Fuel Mix Chart (Pie Chart) ---
+        const fuelMixData = Object.entries(countryData.fuels || {})
+            .map(([fuel, capacity]) => ({ fuel, capacity }));
+
+        const fuelMixPlotData = [{
+            labels: fuelMixData.map(d => d.fuel),
+            values: fuelMixData.map(d => d.capacity),
+            type: 'pie',
+            marker: { colors: fuelMixData.map(d => fuelColors[d.fuel] || fuelColors['Unknown']) },
+            hole: .4,
+            textinfo: 'percent',
+            hoverinfo: 'label+value',
+            textposition: 'auto'
+        }];
+
+        const fuelMixLayout = {
+            title: `Fuel Mix by Capacity (${latestYear})`,
+            showlegend: true,
+            margin: { l: 60, r: 20, t: 40, b: 60 },
+            height: 300,
+            legend: {
+                orientation: 'v',   // Vertical layout
+                x: 1,               // Far right of plot area
+                xanchor: 'left',    // Anchor legend box to its left edge
+                y: 0.5,             // Vertically center
+                yanchor: 'middle',  // Align center vertically
+                font: { size: 12 },
+            }
+        };
+
+        Plotly.newPlot('dist-fuel-mix-chart', fuelMixPlotData, fuelMixLayout, { responsive: true });
+
+        // --- Green Energy Mix Chart (Pie Chart) ---
+        const greenCapacity = countryData.green_capacity || 0;
+        const totalCapacity = countryData.total_capacity || 0;
+        const nonGreenCapacity = totalCapacity - greenCapacity;
+
+        const greenMixPlotData = [{
+            labels: ['Green Energy', 'Non-Green Energy'],
+            values: [greenCapacity, nonGreenCapacity],
+            type: 'pie',
+            marker: { colors: ['#28a745', '#dc3545'] },
+            hole: .4,
+            textinfo: 'percent',
+            hoverinfo: 'label+value'
+        }];
+
+        const greenMixLayout = {
+            title: `Green Energy Mix (${latestYear})`,
+            showlegend: true,
+            margin: { l: 20, r: 20, t: 40, b: 20 },
+            height: 300,
+            legend: {
+                orientation: 'h',   // Horizontal layout
+                x: 0.5,              // Center horizontally
+                y: -0.1,             // Below the plot
+                xanchor: 'center',
+                yanchor: 'top',
+                font: { size: 15 }
+            }
+        };
+
+        Plotly.newPlot('dist-green-pie-chart', greenMixPlotData, greenMixLayout, { responsive: true });
+
+        // --- Renewable Energy Mix Chart (Pie Chart) ---
+        const renewableCapacity = countryData.renewable_capacity || 0;
+        const nonRenewableCapacity = totalCapacity - renewableCapacity;
+
+        const renewableMixPlotData = [{
+            labels: ['Renewable Energy', 'Non-Renewable Energy'],
+            values: [renewableCapacity, nonRenewableCapacity],
+            type: 'pie',
+            marker: { colors: ['#007bff', '#6c757d'] },
+            hole: .4,
+            textinfo: 'percent',
+            hoverinfo: 'label+value'
+        }];
+
+        const renewableMixLayout = {
+            title: `Renewable Energy Mix (${latestYear})`,
+            showlegend: true,
+            margin: { l: 20, r: 20, t: 40, b: 20 },
+            height: 300,
+            legend: {
+                orientation: 'h',   // Horizontal layout
+                x: 0.5,              // Center horizontally
+                y: -0.1,             // Below the plot
+                xanchor: 'center',
+                yanchor: 'top',
+                font: { size: 15 }
+            }
+        };
+
+        Plotly.newPlot('dist-renewable-pie-chart', renewableMixPlotData, renewableMixLayout, { responsive: true });
+        console.log("--- Exiting displayCountryDistributionInfo (charts drawn) ---");
     }
-
+    
     // 5. For the tab 'Power growth'
     // 5.1. Initialize the Power growth tab
     function initGrowthTab() {
@@ -715,7 +662,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.max(3, Math.sqrt(capacity / 10));
     }
 
-    // 6.3. get contry name from feature
     function getCountryNameFromFeature(feature) {
         return feature.properties.ADMIN || feature.properties.name;
     }
