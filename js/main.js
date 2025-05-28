@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const layout = {
             title: `Global Fuel Mix by Capacity (${latestYear})`, showlegend: true,
-            margin: { l: 60, r: 20, t: 40, b: 60 },, height: 300
+            margin: { l: 60, r: 20, t: 40, b: 60 }, height: 300
         };
 
         Plotly.newPlot('global-summary-chart', plotData, layout, {responsive: true});
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const layout = {
             title: `${countryName} - Fuel Mix (${year})`,
             showlegend: true,
-            margin: { l: 10, r: 10, t: 40, b: 10 },
+            margin: { l: 60, r: 20, t: 40, b: 60 },
             height: 250
         };
 
