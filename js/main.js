@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setupTabs();
         initAllMaps();
+        populateGrowthFuelSelect();
 
         // Use Summary as the default tab (the user will see this right after go into the website)
         initSummaryTab();
@@ -106,6 +107,20 @@ document.addEventListener('DOMContentLoaded', () => {
             maps.growth = L.map('map-growth', mapOptions);
             L.tileLayer(tileLayerUrl, tileLayerOptions).addTo(maps.growth);
         }
+    }
+
+    function populateGrowthFuelSelect() {
+        if (!processedData?.fuel_types) return;
+        // Clear existing options except the first one ('Total Capacity')
+         growthFuelSelect.innerHTML = '<option value="_total">Total Capacity</option>';
+         processedData.fuel_types.forEach(fuel => {
+            const option = document.createElement('option');
+            option.value = fuel;
+            option.textContent = fuel;
+            growthFuelSelect.appendChild(option);
+        });
+        growthFuelSelect.removeEventListener('change', updateGrowthMapColors); // Avoid adding multiple listeners
+        growthFuelSelect.addEventListener('change', updateGrowthMapColors);
     }
 
     // 3. For the tab 'Summary'
@@ -628,29 +643,45 @@ document.addEventListener('DOMContentLoaded', () => {
                return { fillColor: getGrowthColor(delta), weight: 1, opacity: 1, color: 'white', fillOpacity: 0.8 };
            },
            onEachFeature: (feature, layer) => {
-               const countryName = getCountryNameFromFeature(feature);
-               const growthData = processedData.country_growth_delta[countryName];
-               const delta = growthData ? (growthData[selectedFuel] ?? 0) : 0;
-               const deltaText = delta !== null ? `<span class="math-inline">\{delta \>\= 0 ? '\+' \: ''\}</span>{delta.toLocaleString()} MW` : 'N/A';
-               const fuelName = selectedFuel === '_total' ? 'Total' : selectedFuel;
-               layer.bindTooltip(`<b><span class="math-inline">\{countryName\}</b\><br\></span>{fuelName} Growth: ${deltaText}`);
-               layer.on('click', (e) => {
-                   L.DomEvent.stopPropagation(e);
-                   displayCountryGrowthInfo(countryName);
-               });
-           }
+                const countryName = getCountryNameFromFeature(feature);
+                const growthData = processedData.country_growth_delta[countryName];
+                const delta = growthData ? (growthData[selectedFuel] ?? 0) : 0;
+                const sign = delta >= 0 ? '+' : '';
+                const formattedDelta = delta.toLocaleString();
+                const deltaTextValue = delta !== null ? `<span class="math-inline">${sign}${formattedDelta} MW</span>` : 'N/A';
+                const fuelName = selectedFuel === '_total' ? 'Total' : selectedFuel;
+                const tooltipContent = `<b>${countryName}</b><br>${fuelName} Growth: ${deltaTextValue}`;
+                layer.bindTooltip(tooltipContent);
+
+                layer.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    displayCountryGrowthInfo(countryName);
+                });
+            }
        }).addTo(maps.growth);
    }
 
    // 5.4. Update the power growth information after selecting the countries
    function displayCountryGrowthInfo(countryName) {
+        const countryDataByYear = processedData.country_summary[countryName];
        const panel = document.getElementById('country-info-growth');
        const nameDiv = document.getElementById('growth-country-name');
        const chartDiv = document.getElementById('country-growth-chart');
        if (!panel || !nameDiv || !chartDiv) return;
    
        nameDiv.textContent = `Power Growth Trend for ${countryName}`;
-       chartDiv.innerHTML = '<p>Coming soon...</p>';
+
+       if (!countryDataByYear) { chartDiv.innerHTML = '<p>No data available for this country.</p>'; showPanel('country-info-growth'); return; }
+       const plotTraces = []; const years = processedData.years;
+       processedData.fuel_types.forEach(fuel => {
+           const capacityValues = years.map(year => countryDataByYear[year]?.fuels?.[fuel] || 0);
+           if (capacityValues.some(v => v > 0)) { plotTraces.push({ x: years, y: capacityValues, mode: 'lines+markers', name: fuel, marker: { color: fuelColors[fuel] || fuelColors['Unknown'] }, line: { shape: 'spline' } }); }
+       });
+       const totalCapacityValues = years.map(year => countryDataByYear[year]?.total_capacity || 0);
+       plotTraces.push({ x: years, y: totalCapacityValues, mode: 'lines+markers', name: 'Total', marker: { color: '#000000' }, line: { dash: 'dash' } });
+       const layout = { title: `Capacity (MW) per Fuel Type`, xaxis: { title: 'Year' }, yaxis: { title: 'Capacity (MW)' }, margin: { t: 40, b: 40, l: 60, r: 20 }, height: 350, hovermode: 'x unified' };
+       Plotly.newPlot(chartDiv, plotTraces, layout, {responsive: true}); 
+
        showPanel('country-info-growth');
    }
    
