@@ -612,7 +612,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
    // 5.2. Get the global growth chart on the bottom of the page
    function plotGlobalGrowthChart() {
-        // (Keep the plotGlobalGrowthChart function exactly as it was)
         if (!processedData) return;
         const chartDiv = document.getElementById('global-growth-chart');
         if (!chartDiv) return;

@@ -64,7 +64,7 @@ main {
     border: 1px solid #ccc;
     background-color: #e0e0e0; /* Placeholder background */
     flex-grow: 1; /* Allow map container to grow */
-    min-height: 400px; /* Minimum height for the map */
+    min-height: 600px; /* Minimum height for the map */
     position: relative; /* Needed for map */
 }
 
